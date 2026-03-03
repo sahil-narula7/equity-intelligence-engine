@@ -10,6 +10,10 @@ from visualization import (
     plot_revenue_comparison,
     plot_valuation_comparison
 )
+@st.cache_data(ttl=600)
+def cached_compare(tickers):
+    df = compare_companies(tickers)
+    return rank_companies(df)
 
 st.set_page_config(layout="wide")
 
@@ -25,6 +29,7 @@ tickers_input = st.text_input(
 
 tickers = [t.strip().upper() for t in tickers_input.split(",") if t.strip()]
 if st.button("Analyze"):
+    df = cached_compare(tuple(tickers))
 
     if len(tickers) == 0:
         st.warning("Please select at least one ticker.")
