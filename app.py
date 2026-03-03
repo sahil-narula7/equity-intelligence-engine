@@ -74,7 +74,8 @@ if st.button("Analyze"):
     df = compare_companies(tickers)
     df = rank_companies(df)
 
-    st.dataframe(df)
+    # Display raw values without rounding
+    st.dataframe(df.style.format(precision=10, na_rep='N/A'))
 
     st.subheader("Revenue CAGR Comparison")
     st.pyplot(plot_revenue_comparison(df))

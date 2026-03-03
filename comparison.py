@@ -15,7 +15,14 @@ def analyze_company(ticker):
     try:
         ticker_obj = yf.Ticker(ticker)
         info = ticker_obj.info
-        pe_ratio = info.get("trailingPE", None)
+        # Try multiple keys for P/E ratio
+        pe_ratio = info.get("trailingPE") or info.get("forwardPE") or info.get("pegRatio")
+        # If still None, calculate from price and EPS
+        if pe_ratio is None:
+            price = info.get("currentPrice") or info.get("regularMarketPrice")
+            eps = info.get("trailingEps")
+            if price and eps and eps > 0:
+                pe_ratio = price / eps
     except Exception:
         pe_ratio = None
 
