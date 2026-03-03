@@ -90,3 +90,50 @@ def compare_companies(tickers):
         results.append(analyze_company(ticker))
 
     return pd.DataFrame(results)
+
+
+def rank_companies(df):
+    """
+    Rank companies based on key metrics.
+    Higher scores indicate better investment potential.
+    """
+    ranked = df.copy()
+
+    # Rank by each metric (higher is better for most)
+    rank_cols = []
+
+    if "Revenue CAGR" in ranked.columns:
+        ranked["Revenue CAGR Rank"] = ranked["Revenue CAGR"].rank(ascending=False, na_option="bottom")
+        rank_cols.append("Revenue CAGR Rank")
+
+    if "Net Income CAGR" in ranked.columns:
+        ranked["NI CAGR Rank"] = ranked["Net Income CAGR"].rank(ascending=False, na_option="bottom")
+        rank_cols.append("NI CAGR Rank")
+
+    if "FCF CAGR" in ranked.columns:
+        ranked["FCF CAGR Rank"] = ranked["FCF CAGR"].rank(ascending=False, na_option="bottom")
+        rank_cols.append("FCF CAGR Rank")
+
+    if "Net Margin Avg" in ranked.columns:
+        ranked["Margin Rank"] = ranked["Net Margin Avg"].rank(ascending=False, na_option="bottom")
+        rank_cols.append("Margin Rank")
+
+    if "ROE Avg" in ranked.columns:
+        ranked["ROE Rank"] = ranked["ROE Avg"].rank(ascending=False, na_option="bottom")
+        rank_cols.append("ROE Rank")
+
+    if "Health Score" in ranked.columns:
+        ranked["Health Rank"] = ranked["Health Score"].rank(ascending=False, na_option="bottom")
+        rank_cols.append("Health Rank")
+
+    # Lower PEG is better
+    if "PEG Ratio" in ranked.columns:
+        ranked["PEG Rank"] = ranked["PEG Ratio"].rank(ascending=True, na_option="bottom")
+        rank_cols.append("PEG Rank")
+
+    # Calculate overall rank as average of individual ranks
+    if rank_cols:
+        ranked["Overall Rank"] = ranked[rank_cols].mean(axis=1).rank(ascending=True)
+        ranked = ranked.sort_values("Overall Rank")
+
+    return ranked
