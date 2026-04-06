@@ -4,7 +4,7 @@ A Streamlit-powered financial analytics dashboard that evaluates companies acros
 
 This tool performs multi-company comparison using real financial statement data from Yahoo Finance and generates structured ranking scores.
 
-**Live Demo:** [https://equity-intelligence-engine.streamlit.app](https://equity-intelligence-engine.streamlit.app)
+**Live Demo:** [https://equity-intelligence-engine.streamlit.app](https://equity-intelligence-engine-bzgyscc82muv5pynupacc3.streamlit.app)
 
 ---
 
