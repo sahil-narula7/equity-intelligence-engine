@@ -1,4 +1,14 @@
 def income_metrics(income_df):
+    if "Total Revenue" not in income_df.columns or "Net Income" not in income_df.columns:
+        return {
+            "Revenue": None,
+            "Net Income": None,
+            "Revenue Growth": None,
+            "Net Income Growth": None,
+            "Gross Profit": income_df.get("Gross Profit", None),
+            "EBIT": income_df.get("Ebit", None)
+        }
+
     revenue = income_df["Total Revenue"]
     net_income = income_df["Net Income"]
 
