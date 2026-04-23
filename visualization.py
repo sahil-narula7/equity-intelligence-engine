@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+import pandas as pd
 
 
 # -----------------------------
@@ -110,8 +111,22 @@ def plot_roe(roe_series):
 def plot_valuation_comparison(df):
     plt.figure(figsize=(8, 5))
 
-    # Handle missing P/E safely
-    pe_values = df["P/E Ratio"].fillna(0)
+    pe_values = pd.to_numeric(df["P/E Ratio"], errors="coerce")
+
+    if pe_values.dropna().empty:
+        plt.title("P/E Ratio Comparison", fontsize=14)
+        plt.ylabel("P/E Ratio")
+        plt.xticks(range(len(df["Company"])), df["Company"])
+        plt.text(
+            0.5,
+            0.5,
+            "No P/E data available for selected tickers.",
+            ha="center",
+            va="center",
+            transform=plt.gca().transAxes
+        )
+        plt.tight_layout()
+        return plt.gcf()
 
     bars = plt.bar(df["Company"], pe_values)
 

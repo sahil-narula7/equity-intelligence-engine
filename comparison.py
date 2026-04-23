@@ -1,9 +1,60 @@
 import pandas as pd
 import yfinance as yf
+import math
 from ingestion import get_financials
 from income_analysis import income_metrics
 from health_analysis import classify_phase, health_score
 from utils import calculate_cagr, get_column
+
+
+def _to_positive_float(value):
+    """Return a positive finite float, otherwise None."""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+
+    if not math.isfinite(number) or number <= 0:
+        return None
+    return number
+
+
+def _get_pe_ratio(ticker_obj):
+    """Fetch a best-effort P/E ratio using multiple yfinance sources."""
+    info = {}
+    try:
+        info = ticker_obj.info or {}
+    except Exception:
+        info = {}
+
+    pe_ratio = (
+        _to_positive_float(info.get("trailingPE"))
+        or _to_positive_float(info.get("forwardPE"))
+    )
+
+    if pe_ratio is not None:
+        return pe_ratio
+
+    price = (
+        _to_positive_float(info.get("currentPrice"))
+        or _to_positive_float(info.get("regularMarketPrice"))
+    )
+    eps = _to_positive_float(info.get("trailingEps"))
+
+    if price is not None and eps is not None:
+        return price / eps
+
+    # Fallback path: derive price from recent close when quote fields are missing.
+    try:
+        history = ticker_obj.history(period="5d")
+        if not history.empty and "Close" in history:
+            last_close = _to_positive_float(history["Close"].dropna().iloc[-1])
+            if last_close is not None and eps is not None:
+                return last_close / eps
+    except Exception:
+        pass
+
+    return None
 
 
 def analyze_company(ticker):
@@ -13,16 +64,7 @@ def analyze_company(ticker):
 
     # ---------- SAFE P/E ----------
     try:
-        ticker_obj = yf.Ticker(ticker)
-        info = ticker_obj.info
-        # Try multiple keys for P/E ratio
-        pe_ratio = info.get("trailingPE") or info.get("forwardPE") or info.get("pegRatio")
-        # If still None, calculate from price and EPS
-        if pe_ratio is None:
-            price = info.get("currentPrice") or info.get("regularMarketPrice")
-            eps = info.get("trailingEps")
-            if price and eps and eps > 0:
-                pe_ratio = price / eps
+        pe_ratio = _get_pe_ratio(yf.Ticker(ticker))
     except Exception:
         pe_ratio = None
 
